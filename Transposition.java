@@ -1,51 +1,51 @@
 import java.util.*;
 
 public class Transposition {
+	public static String msg;
 
 	public static void doEncryption() {
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Encryption...............\n");
-		System.out.println("enter plain text");
-		// converting plaintext to capital letters
-		String plainText = sc.nextLine().toUpperCase().replace(" ", "");
 
-		System.out.println("key");
-		// converting key to capital letters
-		String key = sc.nextLine().toUpperCase();
-		// assigning number to the key
-		int[] keyToNumberList = assignKeyToNumber(key);
-		
-		// printing key
-		for(int i = 0; i < key.length(); i++) {
-			System.out.print(key.charAt(i)+" ");
-		}
-		System.out.println();
-		// printing number corresponding to key
-		for(int i = 0; i < keyToNumberList.length; i++) {
-			System.out.print(keyToNumberList[i]+" ");
-		}
-		System.out.println();
+		System.out.println("Encryption...............");
+		System.out.print("enter plain text    ->");
+		msg = sc.nextLine().toUpperCase().replace(" ", "");
+	
+		System.out.print("key size    ->");
+		int keysize = sc.nextInt();
+		System.out.println("enter key");
+		int[] key  = new int[keysize];
+	
+		for(int i = 0; i < keysize; i++)
+			key[i] = sc.nextInt();
+	
 
 
-		int extraLength = plainText.length() % key.length();
-		int dummyCharacters = key.length() - extraLength;		
+		int extraLength = msg.length() % keysize;
+		int dummyCharacters = keysize- extraLength;		
 		if(extraLength != 0) {
 			for(int i = 0; i < dummyCharacters; i++)
-				plainText +=".";
+				msg +=".";
 		}
 
-		int row = plainText.length() / key.length();
-		int col = key.length();
+		int row = msg.length() / keysize;
+		int col = keysize;
+
+		System.out.println("plain text in matrix form");
+		
+		for(int i = 0; i < key.length; i++) {
+			System.out.print(key[i]+" ");
+		}
+		System.out.println();
 
 		char[][] grid = new char[row][col];
 		int k = 0;
 		for(int i = 0; i < row; i++) {
 			for(int j = 0; j < col; j++) {
-				grid[i][j] = plainText.charAt(k);
+				grid[i][j] = msg.charAt(k);
 				++k;
 			}
 		}
-		// printing plaintext in matrix form
+
 		for(int i = 0; i < row; i++) {
 			for(int j = 0; j < col; j++) {
 				System.out.print(grid[i][j]+" ");
@@ -53,113 +53,135 @@ public class Transposition {
 			System.out.println();
 		}
 
-		// encription
+
 		int z = 0;
 		String cipherText = "";
-		while(z < key.length()) {
-			for(int j = 0; j < key.length(); j++) {
-				if(keyToNumberList[j] == z+1) {
+		while(z < keysize) {
+			for(int j = 0; j < keysize; j++) {
+				if(key[j] == z+1) {
 					for(int r = 0; r < row; r++)
 						cipherText += grid[r][j];
 				}
 			}
 			++z;
 		}
-		// printing cipher text
-		System.out.println("cipherText :" + cipherText);
+		System.out.println("cipherText    ->" + cipherText);
 	}
 
-	public static int[] assignKeyToNumber(String  key) {
-		String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		int[] keyToNumberList = new int[key.length()];
-		int cnt = 1;
-		for(int i = 0; i < 26; i++) {
-			for(int j = 0; j < key.length(); j++) {
-				if(key.charAt(j) == alphabet.charAt(i)) {
-					keyToNumberList[j] = cnt++;
-				}
-			}
-		}
-		return keyToNumberList;
-	}
+	
 
-	public static void doDecryption() {
-		System.out.println("Decryption...............\n");
+	public static List<List<Integer>> permute(int[] nums) {
+    	List<List<Integer>> results = new ArrayList<List<Integer>>();
+        if (nums == null || nums.length == 0) {
+           	return results;
+        }
+        List<Integer> result = new ArrayList<>();
+        findAllkeys(nums, results, result);
+        return results;
+    }
+
+    public static void findAllkeys(int[] nums, List<List<Integer>> results, List<Integer> result) {
+       	if (nums.length == result.size()) {
+           	List<Integer> temp = new ArrayList<>(result);
+           	results.add(temp);
+       	}           
+       	for (int i=0; i<nums.length; i++) {
+           	if (!result.contains(nums[i])) {
+               	result.add(nums[i]);
+               	findAllkeys(nums, results, result);
+               	result.remove(result.size() - 1);
+           	}
+       	}
+    }
+
+    public static void doDecryption() {
+
+    	System.out.println("Decryption...............");
 		Scanner sc = new Scanner(System.in);
-		System.out.print("enter cipher test ");
-		String msg = sc.nextLine().toUpperCase().replace(" ", "");
-		System.out.print("enter key ");
-		String key = sc.nextLine().toUpperCase().replace(" ", "");
-		int[] keyToNumberList = assignKeyToNumber(key);
+		System.out.print("enter cipher test    ->");
+		String cipherText = sc.nextLine().toUpperCase().replace(" ", "");
 
-		// printing key
-		for(int i = 0; i < key.length(); i++) {
-			System.out.print(key.charAt(i)+" ");
+    	
+		for(int i = 1; i <= 8; i++) {
+			int keyFound = 0;
+			int[] arr = new int[i];
+			for(int j = 0; j < i; j++) {
+				arr[j] = j+1;
+			}
+			List<List<Integer>> keyList = permute(arr);
+
+			int[] key = new int[i];
+
+			for (int a = 0; a < keyList.size(); a++) { 
+            	for (int b = 0; b < keyList.get(a).size(); b++) {  
+            		key[b] = keyList.get(a).get(b);
+            	} 
+            	keyFound = findCipher(cipherText, key, i);
+            	if(keyFound == 1)
+            	 	break;
+        	}
+        	if(keyFound == 1)
+        		break;
 		}
-		System.out.println();
-		// printing number corresponding to key
-		for(int i = 0; i < keyToNumberList.length; i++) {
-			System.out.print(keyToNumberList[i]+" ");
-		}
-		System.out.println();
+    }
 
+	public static int findCipher(String cipherText, int[] key, int keysize) {
 
-		int row = msg.length() / key.length();
-		int col = key.length();
+		int row = cipherText.length() / keysize;
+		int col = keysize;
 		char[][] grid = new char[row][col];
 
-		// checking all possible key
-		// List<List<Integer>> keyArray = findPermutation(keyToNumberList);
-
-		// System.out.println("permutation of array");
-		// for(List<Integer> perm:keyArray)
-		// 	System.out.println(perm);
 		int z = 0;
 		int k = 0;
-		while(z < key.length()) {
-			for(int j = 0; j < keyToNumberList.length; j++) {
-				if(keyToNumberList[j] == z+1) {
+		while(z < keysize) {
+			for(int j = 0; j < keysize; j++) {
+				if(key[j] == z+1) {
 					for(int i = 0; i < row; i++) {
-						grid[i][j] = msg.charAt(k++);
+						grid[i][j] = cipherText.charAt(k++);
 					}
 				}
 			}
 			z++;
 		}
+
 		String plainText = "";
 		for(int i = 0; i < row; i++) {
 			for(int j = 0; j < col; j++) {
 				plainText += grid[i][j];
-				System.out.print(grid[i][j]+" ");
 			}
-			System.out.println();
 		}
 
-		System.out.println("plain text : " + plainText);
+		if(msg.equals(plainText)) {
+ 			System.out.println("********************  KEY FOUND!!!  ********************************************\n");
+ 			String str = "";
+ 			int idx = 0;
+ 			while(idx < plainText.length() && plainText.charAt(idx) != '.') {
+ 				str += plainText.charAt(idx);
+ 				idx++;
+ 			}
 
+			System.out.println("plain text    ->" + str);
+			System.out.println("key length    ->" + keysize);
+			
+			System.out.println("cipherText in matrix form");
+			System.out.println("key is : ");
+			for(int i = 0; i < keysize; i++) {
+				System.out.print(key[i]+" ");
+			}
+			System.out.println();
+
+			for(int i = 0; i < row; i++) {
+				for(int j = 0; j < col; j++) {
+					//plainText += grid[i][j];
+					System.out.print(grid[i][j]+" ");
+				}
+				System.out.println();
+			}
+			System.out.println("\n**********************************************************************");
+			return 1;
+		}
+		return 0;
 	}
-
-	// public static List<List<Integer>> findPermutation(int[] arr) {
-	// 	List<List<Integer>> list = new ArrayList<>();
-	// 	permuteHelper(list, new ArrayList<>(), arr);
-	// 	return list;
-	// }
-
-	// public static void permuteHelper(List<List<Integer>> list, List<Integer> resultList, int[] arr) {
-	// 	if(resultList.size() == arr.length) {
-	// 		list.add(new ArrayList<>(resultList));
-	// 	}
-	// 	else {
-	// 		for(int i = 0; i < arr.length; i++) {
-	// 			if(resultList.contains(arr[i]))
-	// 				continue;
-	// 			resultList.add(arr[i]);
-	// 			permuteHelper(list, resultList, arr);
-	// 			resultList.remove(resultList.size());
-	// 		}
-	// 	}
-	// }
-
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		doEncryption();
